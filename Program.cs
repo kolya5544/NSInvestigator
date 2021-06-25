@@ -27,7 +27,7 @@ namespace NSInvestigator
         {
             api.UserAgent = "NSInvestigator by nk.ax";
             Console.WriteLine("=[ NSInvestigator v1.0 by kolya5544 ]=");
-            Console.WriteLine("=[ N step pupper reveal utility     ]=");
+            Console.WriteLine("=[ 4 step pupper reveal utility     ]=");
             Console.Write("Step 1) Enter the name of nation to investigate:");
             string nname = Console.ReadLine().ToLower();
             Console.WriteLine("Step 2) Estimation of time the investigation will take... (you'll be given updates on investigation as it goes)");
