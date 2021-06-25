@@ -40,11 +40,13 @@ namespace NSInvestigator
             Console.WriteLine($"Step 3) Deck investigation in progress. Estimated time: up to {Math.Round(estimate / (double)60, 1)} minutes");
 
             Dictionary<string, List<TCont>> senders = new Dictionary<string, List<TCont>>();
+            List<long> duplicates = new List<long>();
 
             Thread.Sleep(1000);
             for (int i = 0; i<deck.Count; i++)
             {
                 var tc = deck[i];
+                if (!duplicates.Contains(tc.ID)) { duplicates.Add(tc.ID); } else { continue; }
                 TradingCard card = api.GetCard(tc.ID, tc.Season);
                 foreach (Trade trade in card.Trades)
                 {
@@ -76,12 +78,12 @@ namespace NSInvestigator
                 s.allTrades = kvp.Value;
                 foreach (TCont tc in kvp.Value)
                 {
-                    if (tc.trade.Price == 0 || tc.tc.Category == CardCategory.legendary || tc.tc.Category == CardCategory.epic)
+                    if ((tc.trade.Price == 0 || tc.tc.Category == CardCategory.legendary || tc.tc.Category == CardCategory.epic) && tc.trade.Seller == kvp.Key && tc.trade.Buyer == nname)
                     {
                         s.suspiciousTrades.Add(tc);
                     }
                 }
-                double totalMV = 0; s.allTrades.ForEach(z => { totalMV += z.tc.MarketValue; });
+                double totalMV = 0; s.allTrades.ForEach(z => { if (z.trade.Seller == kvp.Key && z.trade.Buyer == nname) { totalMV += z.tc.MarketValue; } });
                 if (s.suspiciousTrades.Count > 0 && totalMV > 0.5)
                 {
                     try
@@ -101,9 +103,9 @@ namespace NSInvestigator
                 for (int i = 0; i<smugglers.Count; i++)
                 {
                     var kvp = smugglers[i];
-                    double totalMV = 0; kvp.Value.allTrades.ForEach(z => { totalMV += z.tc.MarketValue; });
-                    double moneySpent = 0; kvp.Value.allTrades.ForEach(z => { moneySpent += z.trade.Price; });
-                    Console.WriteLine($"[id{i}] '{kvp.Key}' from '{kvp.Value.pni.Region}' has {kvp.Value.suspiciousTrades.Count} suspicious trades (out of {kvp.Value.allTrades.Count} total) with the suspect. Total MV of trades: {Math.Round(totalMV, 1)}. The Suspect spent: {Math.Round(moneySpent, 1)}");
+                    double totalMV = 0; kvp.Value.allTrades.ForEach(z => { if (z.trade.Seller == kvp.Key && z.trade.Buyer == nname) { totalMV += z.tc.MarketValue; } });
+                    double moneySpent = 0; kvp.Value.allTrades.ForEach(z => { if (z.trade.Seller == kvp.Key && z.trade.Buyer == nname) { moneySpent += z.trade.Price; } });
+                    Console.WriteLine($"[id{i}] '{kvp.Key}' from '{kvp.Value.pni.Region}' has {kvp.Value.suspiciousTrades.Count} suspicious trades (out of {kvp.Value.allTrades.Count} total) with the suspect. Total MV of trades: {Math.Round(totalMV, 2)}. The Suspect spent: {Math.Round(moneySpent, 2)}");
                 }
                 if (smugglers.Count == 0)
                 {
